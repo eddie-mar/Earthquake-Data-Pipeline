@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from pprint import pprint
 
+import os
 import pandas as pd
 import requests
 import time
@@ -110,7 +111,9 @@ if __name__ == '__main__':
     # initiate files
     columns = ['place', 'time', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'tz', 'type']
     df = pd.DataFrame(columns=columns)
-    df.to_csv(DATA, index=False)
+
+    os.makedirs('output', exist_ok=True)
+    df.to_csv(f'output/{DATA}', index=False)
 
     with open(ERROR_FILE, 'w') as f:
         f.write('Errors\n')
