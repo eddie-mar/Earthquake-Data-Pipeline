@@ -108,7 +108,7 @@ def extract_historical(columns, csv_file):
 
 if __name__ == '__main__':
     # initiate files
-    columns = ['place', 'time', 'magnitude', 'lat', 'long', 'depth', 'alert', 'tsunami', 'tz', 'type']
+    columns = ['place', 'time', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'tz', 'type']
     df = pd.DataFrame(columns=columns)
     df.to_csv(DATA, index=False)
 
