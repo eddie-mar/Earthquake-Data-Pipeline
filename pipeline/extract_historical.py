@@ -6,11 +6,13 @@ import pandas as pd
 import requests
 import time
 
+os.makedirs('output', exist_ok=True)
+
 COUNT_URL = 'https://earthquake.usgs.gov/fdsnws/event/1/count?'
 QUERY_URL = 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&'
-ERROR_FILE = 'error.txt'
-SUCCESS_FILE = 'success.txt'
-DATA = 'earthquake-data.csv'
+ERROR_FILE = 'output/error.txt'
+SUCCESS_FILE = 'output/success.txt'
+DATA = 'earthquake-data-historical.csv'
 
 def generate_timedelta(start, days=15):
     try:
@@ -112,8 +114,9 @@ if __name__ == '__main__':
     columns = ['place', 'time', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'tz', 'type']
     df = pd.DataFrame(columns=columns)
 
-    os.makedirs('output', exist_ok=True)
-    df.to_csv(f'output/{DATA}', index=False)
+    path = 'output/csv_files/'
+    os.makedirs(path, exist_ok=True)
+    df.to_csv(f'{path}{DATA}', index=False)
 
     with open(ERROR_FILE, 'w') as f:
         f.write('Errors\n')
@@ -121,6 +124,6 @@ if __name__ == '__main__':
     with open(SUCCESS_FILE, 'w') as f:
         f.write('Successfully extracted dates\n')
 
-    extract_historical(columns, DATA)
+    extract_historical(columns, f'{path}{DATA}')
 
 
