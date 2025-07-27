@@ -25,9 +25,9 @@ def data_cleaning(filename, partitions, path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Earthquake Data Cleaning')
 
-    parser.add_argument('--filename', required=True, default='output/earthquake-data.csv', help='Filename for the csv containing earthquake data')
+    parser.add_argument('--filename', required=True, default='output/csv_files/earthquake-data-historical.csv', help='Filename for the csv containing earthquake data')
     parser.add_argument('--partitions', required=True, default=0, help='Number of parquet file partitions')
-    parser.add_argument('--path', required=True, default='historical/', help='Path to save parquet files')
+    parser.add_argument('--path', required=True, default='output/parquet/historical/', help='Path to save parquet files')
 
     args = parser.parse_args()
 
