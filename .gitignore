@@ -1,4 +1,8 @@
 .ipynb_checkpoints/
 earthquake-data.csv
 pipeline/output/
-
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+credentials.json
