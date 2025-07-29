@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from pprint import pprint
 
+import argparse
 import os
 import pandas as pd
 import requests
@@ -18,7 +19,7 @@ def generate_timedelta(start, days=15):
     try:
         end = start + timedelta(days=days)
     except OverflowError:
-        return ('end', days / 2)
+        return ('end', days // 2)
     
     count_query = requests.get(f'{COUNT_URL}starttime={start}&endtime={end}')
     if not count_query.ok:
@@ -30,14 +31,14 @@ def generate_timedelta(start, days=15):
     count_query = int(count_query.text)
 
     if count_query > 20000:
-        return ('ok', days / 2)     # >20k count is found, thus, return the previous value days/2 that is <20k
+        return ('ok', days // 2)     # >20k count is found, thus, return the previous value days/2 that is <20k
     else:
         return generate_timedelta(start, days=days*2)   # Recursive call until 20k count is found
     
 
-def extract_historical(columns, csv_file):
-    start = date.fromisoformat('1900-01-01')
-    end = date.fromisoformat('2025-06-30')
+def extract_historical(columns, csv_file, start_date='1900-01-01', end_date='2025-06-30'):
+    start = date.fromisoformat(start_date)
+    end = date.fromisoformat(end_date)
 
     pointer = start
 
@@ -57,7 +58,7 @@ def extract_historical(columns, csv_file):
             delta = generate_timedelta(start=start, days=15)
             if delta[0] == 'error':
                 # When error, move start to 1 day
-                start = start + timedelta(days=1)
+                start = start + timedelta(days=delta[1])
                 continue
             pointer = start + timedelta(days=delta[1])
         
@@ -110,6 +111,15 @@ def extract_historical(columns, csv_file):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Earthquake Data Extraction')
+    parser.add_argument('--start_date', required=False, default='1900-01-01', help='Date in ISO format to start extraction')
+    parser.add_argument('--end_date', required=False, default='2025-06-30', help='Date in ISO format to end extraction')
+
+    args = parser.parse_args()
+
+    start_date = args.start_date
+    end_date = args.end_date
+
     # initiate files
     columns = ['place', 'time', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'tz', 'type']
     df = pd.DataFrame(columns=columns)
@@ -124,6 +134,6 @@ if __name__ == '__main__':
     with open(SUCCESS_FILE, 'w') as f:
         f.write('Successfully extracted dates\n')
 
-    extract_historical(columns, f'{path}{DATA}')
+    extract_historical(columns, f'{path}{DATA}', start_date, end_date)
 
 
