@@ -18,21 +18,23 @@ def data_cleaning(filename, partitions, path):
         na.fill({'depth': 0})
     
     if partitions == 0:
-        df = df_clean.write.parquet(f'output/{path}')
+        df = df_clean.write.parquet(path, mode='overwrite')
+        print(f'Data cleaned and saved into {path}')
     else:
-        df = df_clean.repartition(partitions).write.parquet(f'output/{path}')
+        df = df_clean.repartition(partitions).write.parquet(path, mode='overwrite')
+        print(f'Data cleaned, repartitioned, and saved into {path}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Earthquake Data Cleaning')
 
     parser.add_argument('--filename', required=True, default='output/csv_files/earthquake-data-historical.csv', help='Filename for the csv containing earthquake data')
-    parser.add_argument('--partitions', required=True, default=0, help='Number of parquet file partitions')
+    parser.add_argument('--partitions', required=False, default=0, help='Number of parquet file partitions')
     parser.add_argument('--path', required=True, default='output/parquet/historical/', help='Path to save parquet files')
 
     args = parser.parse_args()
 
     filename = args.filename
-    partitions = args.partitions
+    partitions = int(args.partitions)
     path = args.path
 
     data_cleaning(filename, partitions, path)
