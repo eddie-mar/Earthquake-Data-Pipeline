@@ -126,13 +126,16 @@ if __name__ == '__main__':
 
     path = 'output/csv_files/'
     os.makedirs(path, exist_ok=True)
-    df.to_csv(f'{path}{DATA}', index=False)
+    if not os.path.exists(f'{path}{DATA}'):
+        df.to_csv(f'{path}{DATA}', index=False)
 
-    with open(ERROR_FILE, 'w') as f:
-        f.write('Errors\n')
+    if not os.path.exists(ERROR_FILE):
+        with open(ERROR_FILE, 'w') as f:
+            f.write('Errors\n')
 
-    with open(SUCCESS_FILE, 'w') as f:
-        f.write('Successfully extracted dates\n')
+    if not os.path.exists(SUCCESS_FILE):
+        with open(SUCCESS_FILE, 'w') as f:
+            f.write('Successfully extracted dates\n')
 
     extract_historical(columns, f'{path}{DATA}', start_date, end_date)
 
