@@ -10,7 +10,7 @@ def data_cleaning(filename, partitions, path):
     df = spark.read.option('header', 'true').option('inferSchema', 'true').csv(filename)
     df = df.withColumn('earthquake_datetime', from_unixtime(col('time')/1000)). \
         withColumn('earthquake_datetime', to_timestamp('earthquake_datetime'))
-    df_clean = df.select('place', 'earthquake_datetime', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'type'). \
+    df_clean = df.select('place', 'earthquake_datetime', 'magnitude', 'latitude', 'longitude', 'depth', 'country', 'region','alert', 'tsunami', 'type'). \
         filter((df.magnitude >= -1) & (df.magnitude <= 10) & (df.magnitude.isNotNull())). \
         filter((df.latitude >= -90) & (df.latitude <= 90)). \
         filter((df.longitude >= -180) & (df.longitude <= 180)). \

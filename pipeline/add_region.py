@@ -42,16 +42,12 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
     with_null_df['get_country'] = with_null_df['place'].apply(lambda x: get_country_from_place(x, country_list))
     
     # merge dataframe with world_df to get region
-    with_null_df = with_null_df.merge(world_df, how='left', left_on='get_country', right_on='country_lower')
+    with_null_df = with_null_df.reset_index().merge(world_df, how='left', left_on='get_country', right_on='country_lower').set_index('index')
 
     # fill into official dataframe
-    gdf_with_country['country'] = gdf_with_country['country'].fillna(
-        gdf_with_country.index.map(with_null_df['place_country'].to_dict())
-    )
-    gdf_with_country['region'] = gdf_with_country['region'].fillna(
-        gdf_with_country.index.map(with_null_df['region'].to_dict())
-    )
-    gdf_with_country.drop(columns='geometry').to_csv(path_to_save, index=False)
+    gdf_with_country['country'] = gdf_with_country['country'].fillna(with_null_df['place_country'])
+    gdf_with_country['region'] = gdf_with_country['region'].fillna(with_null_df['region_y'])
+    gdf_with_country.drop(columns=['geometry', 'index_right']).to_csv(path_to_save, index=False)
 
 
 if __name__ == '__main__':
