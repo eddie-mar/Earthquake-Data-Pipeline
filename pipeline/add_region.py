@@ -49,6 +49,8 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
     gdf_with_country['region'] = gdf_with_country['region'].fillna(with_null_df['region_y'])
     gdf_with_country.drop(columns=['geometry', 'index_right']).to_csv(path_to_save, index=False)
 
+    print(f'Successfully processed and added country and region to earthquake data. File saved in {path_to_save}')
+
 
 if __name__ == '__main__':
     output_path = 'output/csv_file/'
