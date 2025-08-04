@@ -47,13 +47,13 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
     # fill into official dataframe
     gdf_with_country['country'] = gdf_with_country['country'].fillna(with_null_df['place_country'])
     gdf_with_country['region'] = gdf_with_country['region'].fillna(with_null_df['region_y'])
-    gdf_with_country.drop(columns=['geometry', 'index_right']).to_csv(path_to_save, index=False)
+    gdf_with_country.drop(columns=[col for col in ['geometry', 'index_right'] if col in gdf_with_country.columns]).to_csv(path_to_save, index=False)
 
     print(f'Successfully processed and added country and region to earthquake data. File saved in {path_to_save}')
 
 
 if __name__ == '__main__':
-    output_path = 'output/csv_file/'
+    output_path = 'output/csv_files/'
     csv_file_path = f'{output_path}earthquake-data-historical.csv'
     path_to_save = f'{output_path}/earthquake-data-wth-countries.csv'
     world_boundaries = 'world-boundaries/ne_10m_admin_0_countries.shp'
