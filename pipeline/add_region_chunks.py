@@ -83,11 +83,11 @@ def add_country_region(csv_file, world_boundaries, path_to_save, log_file):
     
 
 if __name__ == '__main__':
-    output_path = 'output/csv_file/'
+    output_path = 'output/csv_files/'
     csv_file_path = f'{output_path}earthquake-data-historical.csv'
     path_to_save = f'{output_path}/earthquake-data-wth-countries.csv'
     world_boundaries = 'world-boundaries/ne_10m_admin_0_countries.shp'
-    log_file = 'output/LOGS_ADD_REGION_HISTORICAL.txt'
+    log_file = 'output/logs_add_region_historical.txt'
 
     parser = argparse.ArgumentParser(description='Generate country and region for earthquake data')
     parser.add_argument('--earthquake_data_source', required=False, default=csv_file_path, help='Path to get initial earthquake-data')
