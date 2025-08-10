@@ -1,11 +1,34 @@
 {{
     config(
-        materialized='view'
+        materialized='incremental',
+        unique_key='event_id'
     )
 }}
 
+with earthquake_data as (
+    {% if is_incremental() %}
+
+        select * from
+        {{ source('staging', 'stg_earthquake_data_monthly') }}
+        where earthquake_datetime > (
+            select max(earthquake_datetime) from {{ this }}
+        )
+
+    {% else %}
+
+        select * from {{ source('staging', 'stg_earthquake_data_historical') }}
+        union all
+        select * from {{ source('staging', 'stg_earthquake_data_monthly') }}
+
+    {% endif %}
+),
+duplicate_check as (
+    select *,
+        row_number() over (partition by place, earthquake_datetime order by earthquake_datetime) as rn
+    from earthquake_data
+)
 select 
-    {{ dbt_utils.generate_surrogate_key(['place', 'earthquake_datetime']) as event_id }}
+    {{ dbt_utils.generate_surrogate_key(['place', 'earthquake_datetime'])}} as event_id,
     place, 
     cast(earthquake_datetime as timestamp) as earthquake_datetime,
     cast(magnitude as float64) as magnitude,
@@ -17,5 +40,6 @@ select
     alert,
     tsunami,
     type
-from {{ source('staging', 'stg_earthquake_data') }}
+from duplicate_check
+where rn = 1
 

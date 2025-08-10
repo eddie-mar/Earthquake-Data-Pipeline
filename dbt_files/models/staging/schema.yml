@@ -5,7 +5,8 @@ sources:
     database: earthquake-data-467123
     schema: earthquake_stg_data
     tables:
-      - name: stg_earthquake
+      - name: stg_earthquake_data_historical
+      - name: stg_earthquake_data_monthly
   
 models:
   - name: stg_earthquake
