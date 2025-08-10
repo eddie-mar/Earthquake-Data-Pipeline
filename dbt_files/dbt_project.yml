@@ -37,7 +37,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   earthquake_data:
     staging:
-      +schema: earthquake_data_fact
+      +schema: earthquake_dbt_models
     core:   
       materialized: table
-      +schema: earthquake_data_fact
+      +schema: earthquake_dbt_models
