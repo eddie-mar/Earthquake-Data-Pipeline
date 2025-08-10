@@ -1,0 +1,6 @@
+version: 2
+
+models:
+  - name: fact_earthquake_data
+    description: >
+      Table containing earthquake data

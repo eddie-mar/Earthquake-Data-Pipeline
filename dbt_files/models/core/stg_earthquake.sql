@@ -30,7 +30,7 @@ duplicate_check as (
 select 
     {{ dbt_utils.generate_surrogate_key(['place', 'earthquake_datetime'])}} as event_id,
     place, 
-    cast(earthquake_datetime as timestamp) as earthquake_datetime,
+    cast(earthquake_datetime as timestamp) as event_datetime,
     cast(magnitude as float64) as magnitude,
     cast(latitude as float64) as latitude,
     cast(longitude as float64) as longitude,
