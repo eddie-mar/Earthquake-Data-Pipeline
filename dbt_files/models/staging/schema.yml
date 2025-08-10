@@ -1,0 +1,36 @@
+version: 2
+
+sources:
+  - name: staging
+    database: earthquake-data-467123
+    schema: earthquake_stg_data
+    tables:
+      - name: stg_earthquake
+  
+models:
+  - name: stg_earthquake
+    description: >
+      Earthquake data extracted from USGS API.
+    columns: 
+      - name: place
+        description: Geographic region determined to be closest to the event
+      - name: earthquake_datetime
+        description: Time when the event occurred
+      - name: magnitude
+        description: Magnitude recorded for the event
+      - name: latitude
+        description: Decimal degrees latitude of recorded epicenter
+      - name: longitude
+        description: Decimal degrees longitude of recorded epicenter
+      - name: depth
+        description: Depth where the event begins to rupture
+      - name: country
+        description: Country the epicenter is recorded
+      - name: region
+        description: Region the epicenter is located
+      - name: alert
+        description: Alert level based on PAGER earthquake impact scale
+      - name: tsunami
+        description: Indication if event was recorded in NOAA Tsunami website for tsunami information. Usually large events.
+      - name: type
+        description: Type of seismic event
