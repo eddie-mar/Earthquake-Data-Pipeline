@@ -5,7 +5,7 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_unixtime, to_timestamp
 
-def data_cleaning(filename, partitions, path):
+def data_cleaning(filename, partitions, path, min_date, max_date):
     spark = SparkSession.builder.appName('earthquake-data-cleaning').getOrCreate()
     df = spark.read.option('header', 'true').option('inferSchema', 'true').csv(filename)
 
@@ -13,16 +13,33 @@ def data_cleaning(filename, partitions, path):
         df.write.parquet(path, mode='overwrite')
     else:
         df.repartition(partitions).write.parquet(path, mode='overwrite')
+
     df = spark.read.parquet(path)
 
     df = df.withColumn('earthquake_datetime', from_unixtime(col('time')/1000)). \
         withColumn('earthquake_datetime', to_timestamp('earthquake_datetime'))
-    df_clean = df.select('place', 'earthquake_datetime', 'magnitude', 'latitude', 'longitude', 'depth', 'country', 'region','alert', 'tsunami', 'type'). \
-        filter((df.magnitude >= -1) & (df.magnitude <= 10) & (df.magnitude.isNotNull())). \
-        filter((df.latitude >= -90) & (df.latitude <= 90)). \
-        filter((df.longitude >= -180) & (df.longitude <= 180)). \
-        dropDuplicates(subset=['place', 'earthquake_datetime']). \
-        na.fill({'depth': 0})
+    df_clean = (df
+        .select('place', 'earthquake_datetime', 'magnitude', 'latitude', 'longitude', 'depth', 'country', 'region', 'alert', 'tsunami', 'type')
+        .filter(
+            (col('magnitude') >= -1) &
+            (col('magnitude') <= 10) &
+            (col('magnitude').isNotNull())
+        )
+        .filter(
+            (col('latitude') >= -90) &
+            (col('latitude') <= 90)
+        )
+        .filter(
+            (col('longitude') >= -180) &
+            (col('longitude') <= 180)
+        )
+        .filter(
+            (col('earthquake_datetime') >= min_date) &
+            (col('earthquake_datetime') <= max_date)
+        )
+        .dropDuplicates(subset=['place', 'earthquake_datetime'])
+        .na.fill({'depth': 0})
+            )
     
     if partitions == 0:
         df = df_clean.write.parquet(path, mode='overwrite')
@@ -43,5 +60,7 @@ if __name__ == '__main__':
     filename = args.filename
     partitions = int(args.partitions)
     path = args.path
+    min_date = datetime.fromisoformat('1900-01-01')
+    max_date = datetime.fromisoformat('2025-06-30')
 
-    data_cleaning(filename, partitions, path)
+    data_cleaning(filename, partitions, path, min_date, max_date)

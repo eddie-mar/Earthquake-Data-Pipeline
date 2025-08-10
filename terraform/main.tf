@@ -37,10 +37,12 @@ resource "google_bigquery_dataset" "dataset_stg" {
   dataset_id = var.bq_dataset_name_1
   project = var.project
   location   = var.location
+  delete_contents_on_destroy = true
 }
 
 resource "google_bigquery_dataset" "dataset_fact" {
   dataset_id = var.bq_dataset_name_2
   project = var.project
   location   = var.location
+  delete_contents_on_destroy = true
 }

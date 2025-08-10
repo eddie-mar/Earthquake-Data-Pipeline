@@ -25,7 +25,7 @@ variable "bq_dataset_name_1" {
 
 variable "bq_dataset_name_2" {
   description = "Earthquake Data Processed Dataset Name"
-  default     = "earthquake_data_fact"
+  default     = "earthquake_dbt_models"
 }
 
 variable "gcs_bucket_name" {
