@@ -8,6 +8,13 @@ from pyspark.sql.functions import col, from_unixtime, to_timestamp
 def data_cleaning(filename, partitions, path):
     spark = SparkSession.builder.appName('earthquake-data-cleaning').getOrCreate()
     df = spark.read.option('header', 'true').option('inferSchema', 'true').csv(filename)
+
+    if partitions == 0:
+        df.write.parquet(path, mode='overwrite')
+    else:
+        df.repartition(partitions).write.parquet(path, mode='overwrite')
+    df = spark.read.parquet(path)
+
     df = df.withColumn('earthquake_datetime', from_unixtime(col('time')/1000)). \
         withColumn('earthquake_datetime', to_timestamp('earthquake_datetime'))
     df_clean = df.select('place', 'earthquake_datetime', 'magnitude', 'latitude', 'longitude', 'depth', 'country', 'region','alert', 'tsunami', 'type'). \
@@ -21,7 +28,7 @@ def data_cleaning(filename, partitions, path):
         df = df_clean.write.parquet(path, mode='overwrite')
         print(f'Data cleaned and saved into {path}')
     else:
-        df = df_clean.repartition(partitions).write.parquet(path, mode='overwrite')
+        df = df_clean.coalesce(partitions).write.parquet(path, mode='overwrite')
         print(f'Data cleaned, repartitioned, and saved into {path}')
 
 if __name__ == '__main__':
