@@ -30,8 +30,25 @@ models:
       - name: region
         description: Region the epicenter is located
       - name: alert
-        description: Alert level based on PAGER earthquake impact scale
+        description: >
+          Alert level based on PAGER earthquake impact scale
+            Green = Little or no impact expected
+            Yellow = Regional impact and response. Thresholds for 
+                yellow alerts are typically around 1 million USD in losses and 1 fatality, according to the USGS.
+            Orange = National-scale impact and response. Thresholds for orange alerts are typically around 100 
+                million USD in losses and 100 fatalities, according to the USGS.
+            Red = International impact and response. Thresholds for red alerts are typically around 1 billion 
+                USD in losses and 1000 fatalities, according to the USGS.
       - name: tsunami
         description: Indication if event was recorded in NOAA Tsunami website for tsunami information. Usually large events.
       - name: type
         description: Type of seismic event
+      
+  - name: fact_earthquake_data
+    columns:
+      - name: severity
+        description: Classification of earthquake strength based on magnitude
+      - name: event_year
+        description: The year the event was recorded
+      - name: event_decade
+        description: The decade the event was recorded

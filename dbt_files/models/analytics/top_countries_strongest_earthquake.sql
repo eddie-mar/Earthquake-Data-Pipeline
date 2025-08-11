@@ -3,6 +3,7 @@
         materialized='view'
     )
 }}
+-- to see country with strongest earthquake recorded
 
 select 
     country, 

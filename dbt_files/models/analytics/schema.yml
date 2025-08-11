@@ -1,6 +1,36 @@
 version: 2
 
 models:
-  - name: fact_earthquake_data
+  - name: top_countries_strongest_earthquake
     description: >
-      Table containing earthquake data
+      Strongest earthquake recorded with their country of origin
+  - name: country_earthquake_stats_per_decade
+    description: >
+      Aggregate counts, average magnitude and depth of earthquake per country per decade. 
+      Only considered earthquake of mag > 3
+  - name: yearly_earthquake_stats
+    description: >
+      Yearly earthquake counts with average magnitude and depth. See the trend for average strength and depth changes.
+      Only considered earthquake of mag > 3
+  - name: deadliest_decade
+    description: >
+      Earthquake counts and average magnitude per decade.
+      Only considered earthquake of mag > 3
+  - name: top_100_earthquake
+    description: >
+      Top 100 strongest earthquake in history
+  - name: country_severe_earthquake_stats
+    description: >
+      Severe earthquakes per country count
+  - name: event_type_stats
+    description: >
+      Earthquake event type frequency and average magnitude
+  - name: alert_level_frequency_stats
+    description: >
+      Ordered data for most dangerous earthquake per alert level
+  - name: tsunami_flags
+    description: >
+      Percent earthquake events in a country has been tsunami flagged.
+      Disclaimer: This does not mean that tsunami has occured. 
+      The event will include a link to the NOAA Tsunami website for tsunami information, usually for large events.
+      For further research towards NOAA Tsunami website

@@ -3,7 +3,7 @@
         materialized='view'
     )
 }}
-
+-- to see frequency and strength of earthquakes in a country per decade
 
 select 
     country, 

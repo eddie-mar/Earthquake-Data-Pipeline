@@ -3,7 +3,7 @@
         materialized='view'
     )
 }}
-
+-- to see yearly increase of count and magnitude and depth
 
 select 
     event_year as year, 
