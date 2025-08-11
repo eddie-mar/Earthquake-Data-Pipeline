@@ -50,7 +50,7 @@ def extract_historical(columns, csv_file, start_date='1500-01-01', end_date='202
     # In making request, we shall make a request first on the count to ensure we will not get pass the limit and create an error
     # Initial years has low counts, based on exploration, 1500-1949 and 1949-1965 has 20k, the next years have greater
     while start <= end:
-        if pointer.year < 1950:
+        if pointer.year < 1949:
             pointer = date.fromisoformat('1949-01-01')
         elif pointer.year < 1965:
             pointer = date.fromisoformat('1965-01-01')
