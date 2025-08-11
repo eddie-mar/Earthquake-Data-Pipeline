@@ -60,7 +60,7 @@ if __name__ == '__main__':
     filename = args.filename
     partitions = int(args.partitions)
     path = args.path
-    min_date = datetime.fromisoformat('1900-01-01')
-    max_date = datetime.fromisoformat('2025-06-30')
+    min_date = datetime.fromisoformat('1500-01-01')
+    max_date = datetime.fromisoformat('2025-07-31')
 
     data_cleaning(filename, partitions, path, min_date, max_date)
