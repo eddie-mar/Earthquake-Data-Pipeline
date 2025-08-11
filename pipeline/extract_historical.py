@@ -19,7 +19,11 @@ def generate_timedelta(start, days=15):
     try:
         end = start + timedelta(days=days)
     except OverflowError:
-        return ('end', days // 2)
+        message = f'Overflow Error at start = {start} and endtime = {end}'
+        print(message)
+        with open(ERROR_FILE, 'a') as f:
+            f.write(message + '\n')
+        return ('error', days // 2)
     
     count_query = requests.get(f'{COUNT_URL}starttime={start}&endtime={end}')
     if not count_query.ok:
@@ -36,7 +40,7 @@ def generate_timedelta(start, days=15):
         return generate_timedelta(start, days=days*2)   # Recursive call until 20k count is found
     
 
-def extract_historical(columns, csv_file, start_date='1900-01-01', end_date='2025-06-30'):
+def extract_historical(columns, csv_file, start_date='1500-01-01', end_date='2025-07-31'):
     start = date.fromisoformat(start_date)
     end = date.fromisoformat(end_date)
 
@@ -44,10 +48,10 @@ def extract_historical(columns, csv_file, start_date='1900-01-01', end_date='202
 
     # Data extraction per API is limited to 20k counts per request (base on documentation)
     # In making request, we shall make a request first on the count to ensure we will not get pass the limit and create an error
-    # Initial years has low counts, based on exploration, 1900-1950 and 1950-1965 has 20k, the next years have greater
+    # Initial years has low counts, based on exploration, 1500-1949 and 1949-1965 has 20k, the next years have greater
     while start <= end:
         if pointer.year < 1950:
-            pointer = date.fromisoformat('1950-01-01')
+            pointer = date.fromisoformat('1949-01-01')
         elif pointer.year < 1965:
             pointer = date.fromisoformat('1965-01-01')
         elif (end - start) < timedelta(days=30):    # When nearing end, just set pointer to end
@@ -112,8 +116,8 @@ def extract_historical(columns, csv_file, start_date='1900-01-01', end_date='202
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Earthquake Data Extraction')
-    parser.add_argument('--start_date', required=False, default='1900-01-01', help='Date in ISO format to start extraction')
-    parser.add_argument('--end_date', required=False, default='2025-06-30', help='Date in ISO format to end extraction')
+    parser.add_argument('--start_date', required=False, default='1500-01-01', help='Date in ISO format to start extraction')
+    parser.add_argument('--end_date', required=False, default='2025-07-31', help='Date in ISO format to end extraction')
 
     args = parser.parse_args()
 
