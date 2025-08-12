@@ -8,4 +8,4 @@ terraform/terraform.tfstate.backup
 terraform/terraform.tfstate.lock.info
 credentials.json
 target/
-
+data_exploration_notebooks/earthquake-data.csv
