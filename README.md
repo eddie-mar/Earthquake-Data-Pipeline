@@ -32,11 +32,11 @@ The extraction script can be found in [extract_historical.py](pipeline/extract_h
 
 The data transformation was done in two steps and script which are [add_region_chunks.py](pipeline/add_region_chunks.py) and 
 [clean_historical.py](pipeline/clean_historical.py) for adding region from raw coordinates and cleaning the raw data, respectively. 
-<br>
+<br><br>
 For adding country and region, a [shapefile](pipeline/world-boundaries/ne_10m_admin_0_countries.shp) that contains world countries geometric boundaries is needed. The raw coordinates in the earthquake data is spatially joined with the shapefile to determine the
  country of the raw location. The reading of the shapefile and sjoin is done with geopandas. After the spatial join, there are still
   null countries observed, looking at the place column of the data, some data contains country place. This was used to infer and fill those null data. The data was processed per chunks since the transformation process is heavy and the memory isn't sufficient for the 4 million data to be processed all at once. The script for processing all data at once is also present [here](pipeline/add_region.py). The shapefile was downloaded in this [url](https://www.naturalearthdata.com/downloads/110m-cultural-vectors/). For some reason, the file cannot be extracted using curl or wget. It can be downloaded by clicking the link under Admin o - Countries download countries.
-<br>
+<br><br>
 Jupyter notebooks are available where I explored the data first. [world-boundaries.ipynb](data_exploration_notebooks/world-boundaries.ipynb) contains the testing i have done for the shapefile. [earthquake-data-exploration.ipynb](data_exploration_notebooks/earthquake-data-exploration.ipynb) and [earthquake-data-cleaning.ipynb](data_exploration_notebooks/earthquake-data-cleaning.ipynb) are also available where I experimented with exploring the data to decide how I should clean it. The sample results can also be seen to see the changes.
 The process for cleaning data is done in [clean_historical.py](pipeline/clean_historical.py). Pyspark is used for cleaning the data
  since we are dealing with huge number of rows (about 4 million). The output is saved into a parquet format.
@@ -65,4 +65,41 @@ python3 clean_historical.py \
 
 ### Loading Data into GCP and BigQuery
 
+The infrastructure was created using terraform. The configuration files can be found [here](terraform/). Install terraform first based on your operating system, then edit the configuration files based on your project. 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+An active GCP account must be present. Google Cloud SDK is also used to upload files into GCS Buckets. The resulting parquet files are uploaded into GCS Buckets using gsutil command.
+```bash
+gsutil -m cp -r pipeline/output/parquet/historical/*.parquet gs://earthquake_data_buckets/historical
+```
 
+Then, the parquet files are loaded into an external table which is then used to create the staging table for our data in BigQuery.
+```bash
+CREATE OR REPLACE EXTERNAL TABLE `earthquake-data-467123.earthquake_stg_data.external_earthquake_data_historical`
+OPTIONS (
+    format='PARQUET',
+    uris=['gs://earthquake_data_buckets/historical/*']
+);
+
+CREATE OR REPLACE TABLE `earthquake-data-467123.earthquake_stg_data.stg_earthquake_data_historical`
+AS SELECT * FROM `earthquake-data-467123.earthquake_stg_data.external_earthquake_data_historical`;
+
+CREATE OR REPLACE TABLE `earthquake-data-467123.earthquake_stg_data.stg_earthquake_data_monthly`
+AS SELECT * FROM `earthquake-data-467123.earthquake_stg_data.external_earthquake_data_historical` 
+WHERE 1=0;
+```
+
+An empty monthly table was also initialized.
+
+### Data Modeling
+
+<p align="center">
+     <img width="75%" src="assets/dbt-lineage.png" alt="code infrastructure">
+ </p>
+
+After the data was loaded into the data warehouse, dbt is used to transform and create data models. The staging and fact tables are found in [dbt_files/models/core](dbt_files/models/core/). The staging model standardized naming and data types. In the fact table, a column named 'severity' was created to classify earthquake strength. Event year and decade was also generated which will be used for analytical models. 
+<br><br>
+The analytical models can be found in [dbt_files/models/analytics/](dbt_files/models/analytics/). Some models that can be found are countries' earthquake stats per decade, yearly earthquake statistics and changes, and most dangerous earthquake recorded based on alert level.
