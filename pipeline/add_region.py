@@ -19,6 +19,7 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
         'ADMIN': 'country',
         'REGION_UN': 'region'
     }), how='left', predicate='within')
+    print('Spatial join done with dataframe and world points')
     # dataframe with country generated. still a lot of null countries, we will fill those based on the place name that contains a country
 
     # load list of countries and region into dataframe
@@ -40,16 +41,21 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
     with_null_df = gdf_with_country[gdf_with_country.country.isnull()].copy()
     country_list = world_df['country_lower'].tolist()
     with_null_df['get_country'] = with_null_df['place'].apply(lambda x: get_country_from_place(x, country_list))
-    
+    print('Inferred country from place columns')
+
     # merge dataframe with world_df to get region
     with_null_df = with_null_df.reset_index().merge(world_df, how='left', left_on='get_country', right_on='country_lower').set_index('index')
 
     # fill into official dataframe
+    print('Filling inferred data into null values')
     gdf_with_country['country'] = gdf_with_country['country'].fillna(with_null_df['place_country'])
     gdf_with_country['region'] = gdf_with_country['region'].fillna(with_null_df['region_y'])
     gdf_with_country.drop(columns=[col for col in ['geometry', 'index_right'] if col in gdf_with_country.columns]).to_csv(path_to_save, index=False)
 
     print(f'Successfully processed and added country and region to earthquake data. File saved in {path_to_save}')
+
+    return path_to_save
+    
 
 
 if __name__ == '__main__':

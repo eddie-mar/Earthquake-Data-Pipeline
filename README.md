@@ -16,7 +16,6 @@ This is an ETL project that prepares earthquake data from 1500 until present 202
  - Created data infrastructure with terraform and uploaded data into GCP BigQuery
  - Data modeling done using dbt 
 <br>
- ## Python Scripts (Extraction and Transformation)
 
  ### Data Extraction
 
