@@ -70,7 +70,7 @@ terraform init
 terraform plan
 terraform apply
 ```
-An active GCP account must be present. Google Cloud SDK is also used to upload files into GCS Buckets. The resulting parquet files are uploaded into GCS Buckets using gsutil command.
+An active GCP account must be present. Google Cloud SDK is also used to upload files into GCS Buckets. The resulting parquet files are uploaded into GCS Buckets using gsutil command. Changed the GCS bucket name for yours in your project.
 ```bash
 gsutil -m cp -r pipeline/output/parquet/historical/*.parquet gs://earthquake_data_buckets/historical
 ```
