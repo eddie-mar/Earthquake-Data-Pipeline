@@ -1,0 +1,7 @@
+output/
+README.md
+assets/
+credentials.json
+data_exploration_notebooks/
+terraform/
+secrets/

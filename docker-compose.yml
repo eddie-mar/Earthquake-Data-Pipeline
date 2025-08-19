@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  airflow-dev:
+    build: .
+    container_name: airflow-dev
+    command: bash 
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      - AIRFLOW_HOME=/app/airflow
+    volumes:
+      - ./output:/app/output
+      - ./airflow/dags:/app/airflow/dags
+      - ./airflow/logs:/app/airflow/logs
+      - ./airflow/config:/app/airflow/config
+      - ./secrets/credentials.json:/app/airflow/credentials.json:ro
+    ports:
+      - "8080:8080"
+    tty: true
+    stdin_open: true

@@ -1,13 +1,21 @@
 import argparse
+import os
 import pyspark
 
 from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_unixtime, to_timestamp
 
-def data_cleaning(filename, partitions, path, min_date, max_date):
+from extract_historical import BASE_DIR
+from add_region_chunks import PROCESSED_DATA as PROCESSED_DATA_SOURCE
+
+OUTPUT_PARQUET_DIR_PARENT = os.path.join(BASE_DIR, 'output', 'parquet_files')
+OUTPUT_PARQUET_DIR = os.path.join(OUTPUT_PARQUET_DIR_PARENT, 'historical')
+os.makedirs(OUTPUT_PARQUET_DIR, exist_ok=True)
+
+def data_cleaning(data_source, partitions, path, min_date, max_date):
     spark = SparkSession.builder.appName('earthquake-data-cleaning').getOrCreate()
-    df = spark.read.option('header', 'true').option('inferSchema', 'true').csv(filename)
+    df = spark.read.option('header', 'true').option('inferSchema', 'true').csv(data_source)
 
     if partitions == 0:
         df.write.parquet(path, mode='overwrite')
@@ -51,9 +59,9 @@ def data_cleaning(filename, partitions, path, min_date, max_date):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Earthquake Data Cleaning')
 
-    parser.add_argument('--filename', required=True, default='output/csv_files/earthquake-data-wth-countries.csv', help='Filename for the csv containing earthquake data')
+    parser.add_argument('--filename', required=False, default=PROCESSED_DATA_SOURCE, help='Filename for the csv containing earthquake data')
     parser.add_argument('--partitions', required=False, default=0, help='Number of parquet file partitions')
-    parser.add_argument('--path', required=True, default='output/parquet/historical/', help='Path to save parquet files')
+    parser.add_argument('--path', required=False, default=OUTPUT_PARQUET_DIR, help='Path to save parquet files')
 
     args = parser.parse_args()
 

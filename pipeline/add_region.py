@@ -7,6 +7,12 @@ import pandas as pd
 from shapely.geometry import Point
 from tqdm import tqdm
 
+from extract_historical import OUTPUT_DIR
+from extract_historical import DATA_FILE as RAW_DATA_SOURCE
+
+PROCESSED_DATA = os.path.join(OUTPUT_DIR, 'historical-earthquake-data-processed-countries.csv')
+WORLD_BOUNDARIES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'world-boundaries', 'ne_10m_admin_0_countries.shp')
+
 def add_country_region(csv_file, world_boundaries, path_to_save):
     df = pd.read_csv(csv_file)
 
@@ -59,15 +65,10 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
 
 
 if __name__ == '__main__':
-    output_path = 'output/csv_files/'
-    csv_file_path = f'{output_path}earthquake-data-historical.csv'
-    path_to_save = f'{output_path}/earthquake-data-wth-countries.csv'
-    world_boundaries = 'world-boundaries/ne_10m_admin_0_countries.shp'
-
     parser = argparse.ArgumentParser(description='Generate country and region for earthquake data')
-    parser.add_argument('--earthquake_data_source', required=False, default=csv_file_path, help='Path to get initial earthquake-data')
-    parser.add_argument('--path_to_save', required=False, default=path_to_save, help='Path to save result')
-    parser.add_argument('--world_boundaries', required=False, default=world_boundaries, help='Path to get world boundaries data')
+    parser.add_argument('--earthquake_data_source', required=False, default=RAW_DATA_SOURCE, help='Path to get initial earthquake-data')
+    parser.add_argument('--path_to_save', required=False, default=PROCESSED_DATA, help='Path to save result')
+    parser.add_argument('--world_boundaries', required=False, default=WORLD_BOUNDARIES, help='Path to get world boundaries data')
 
     args = parser.parse_args()
 
@@ -80,9 +81,7 @@ if __name__ == '__main__':
     if not os.path.exists(world_boundaries_data):
         raise Exception('World boundary data not found. Download data first, refer to documentation')
     
-    save_file_parent = os.path.dirname(save_file)
-    if not os.path.exists(save_file_parent):
-        os.makedirs(save_file_parent)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     add_country_region(earthquake_data_source, world_boundaries_data, save_file)
 
