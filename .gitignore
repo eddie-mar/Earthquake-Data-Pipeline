@@ -1,11 +1,14 @@
 .ipynb_checkpoints/
 earthquake-data.csv
-pipeline/output/
 terraform/.terraform/
 terraform/.terraform.lock.hcl
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/terraform.tfstate.lock.info
+secrets/
 credentials.json
 target/
 data_exploration_notebooks/earthquake-data.csv
+output/
+
+

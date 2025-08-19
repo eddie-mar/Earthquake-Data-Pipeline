@@ -1,4 +1,4 @@
-# Earthquake-Data-Pipeline
+# Earthquake-Data-Pipeline (to be updated . .)
 
 This is an ETL project that prepares earthquake data from 1500 until present 2025. It extracts data from
  USGS API and cleans it with pandas and apache spark. The data is loaded into GCP and pulled into dbt for data modeling.
@@ -102,3 +102,5 @@ An empty monthly table was also initialized.
 After the data was loaded into the data warehouse, dbt is used to transform and create data models. The staging and fact tables are found in [dbt_files/models/core](dbt_files/models/core/). The staging model standardized naming and data types. In the fact table, a column named 'severity' was created to classify earthquake strength. Event year and decade was also generated which will be used for analytical models. 
 <br><br>
 The analytical models can be found in [dbt_files/models/analytics/](dbt_files/models/analytics/). Some models that can be found are countries' earthquake stats per decade, yearly earthquake statistics and changes, and most dangerous earthquake recorded based on alert level.
+
+

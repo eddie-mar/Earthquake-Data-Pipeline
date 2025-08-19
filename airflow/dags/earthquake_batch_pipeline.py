@@ -4,8 +4,9 @@ from airflow.operators.bash import BashOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from datetime import date, datetime, timedelta
 
-from add_region import add_country_region
-from clean_historical import data_cleaning
+from pipeline.add_region import add_country_region, WORLD_BOUNDARIES
+from pipeline.clean_historical import data_cleaning, OUTPUT_PARQUET_DIR_PARENT
+from pipeline.extract_historical import ERROR_FILE, SUCCESS_FILE, OUTPUT_DIR, LOGS_DIR, BASE_DIR
 
 import os
 
@@ -24,7 +25,8 @@ with DAG(
     start_date=datetime(2024, 7, 1),
     catchup=True,
 ) as dag:
-    
+    DBT_PROJECT_DIR = os.path.join(BASE_DIR, 'dbt_files')
+
     def extract_monthly(**kwargs):
         import pandas as pd
         import requests
@@ -37,7 +39,7 @@ with DAG(
         if not response.ok:
             message =  f'Failed extraction for start = {start} -> pointer = {end}\n\tError {response.status_code}: {response.text}'
             print(message)
-            with open('output/error.txt', 'a') as f:
+            with open(ERROR_FILE, 'a') as f:
                 f.write(message + '\n')
             raise Exception(f'Request data error. Check logs at error.txt for {start} -> {end}')
             # raise failure for airflow to stop workflow. must not return Null since airflow will interpret it to be succesful and proceed with next tasks
@@ -62,21 +64,21 @@ with DAG(
             except Exception as e:
                 print(f'Error {e}')
                 print(entry)
-                with open('output/error.txt', 'a') as f:
+                with open(ERROR_FILE, 'a') as f:
                     f.write(f'Data ingestion failure. Error {e} for start = {start} -> pointer = {end}\n')
                 continue
             df_to_enter.append(data)
         
         df = pd.DataFrame(df_to_enter, columns=['place', 'time', 'magnitude', 'latitude', 'longitude', 'depth', 'alert', 'tsunami', 'tz', 'type'])
         
-        path = 'output/csv_files/'
-        os.makedirs(path, exist_ok=True)
-        path = f'{path}earthquake-data-{start.year}-{start.month:02d}.csv'
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        path = os.path.join(OUTPUT_DIR, f'batch-earthquake-data-{start.year}-{start.month:02d}.csv')
+
         df.to_csv(path, index=False)
 
         success_message = f'Successful extraction for start = {start} -> pointer = {end}'
         print(success_message)
-        with open('output/success.txt', 'a') as f:
+        with open(SUCCESS_FILE, 'a') as f:
             f.write(success_message + '\n')
 
         return path
@@ -92,10 +94,10 @@ with DAG(
         data_wth_region = add_country_region(
             csv_file=path,
             world_boundaries=kwargs['world_boundaries'],
-            path_to_save=f'output/csv_files/earthquake-data-wth-countries-{start.year}-{start.month:02d}.csv'
+            path_to_save=os.path.join(OUTPUT_DIR, f'batch-earthquake-data-processed-{start.year}-{start.month:02d}.csv')
         )
 
-        logs = f'output/logs_add_region_monthly.txt'
+        logs = os.path.join(LOGS_DIR, 'logs_add_region_batch.txt')
         if not os.path.exists(logs):
             with open(logs, 'w') as f:
                 f.write('ADD COUNTRY AND REGION MONTHLY DATA PROCESS LOGS\n')
@@ -116,25 +118,27 @@ with DAG(
         end = date.fromisoformat(kwargs['next_ds'])
         end = end - timedelta(days=1)
         
+        path_to_save = os.path.join(OUTPUT_PARQUET_DIR_PARENT, f'batch-{start.year}-{start.month:02d}')
+
         data_cleaning(
             filename=data_wth_region,
             partitions=0,
-            path=f'output/parquet/batch-{start.year}-{start.month:02d}/',
+            path=path_to_save,
             min_date=start,
             max_date=end
         )
 
-        logs_cleaning = f'output/logs_data_cleaning.txt'
-        if not os.path.exists(logs_cleaning):
-            with open(logs_cleaning, 'w') as f:
+        logs = os.path.join(LOGS_DIR, 'logs_data_cleaning.txt')
+        if not os.path.exists(logs):
+            with open(logs, 'w') as f:
                 f.write('DATA CLEANING LOGS')
         
         success_message = f'Successfuly cleaned raw earthquake data for {start.year}-{start.month:02d}'
         print(success_message)
-        with open(logs_cleaning, 'a') as f:
+        with open(logs, 'a') as f:
             f.write(success_message + '\n')
 
-        return f'output/parquet/batch-{start.year}-{start.month:02d}/'
+        return path_to_save
 
 
     # tasks
@@ -147,7 +151,7 @@ with DAG(
         task_id='process_data_region',
         python_callable=process_region,
         provide_context=True,
-        op_kwargs={'world_boundaries': 'world-boundaries/ne_10m_admin_0_countries.shp'}
+        op_kwargs={'world_boundaries': WORLD_BOUNDARIES}
     )
 
     clean_data_task = PythonOperator(
@@ -198,8 +202,8 @@ with DAG(
             "export DBT_DATASET={{ var.value.dataset }} && "
             "export DBT_KEYFILE={{ var.value.keyfile }} && "
             """dbt run \
-                --project-dir ./../dbt_files \
-                --profiles-dir ./../dbt_files
+                --project-dir { DBT_PROJECT_DIR } \
+                --profiles-dir { DBT_PROJECT_DIR }
                 """
         )
     )
