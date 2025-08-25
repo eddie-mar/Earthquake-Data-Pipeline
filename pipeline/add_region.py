@@ -3,6 +3,7 @@ import geopandas as gpd
 import json
 import os
 import pandas as pd
+import re
 
 from shapely.geometry import Point
 from tqdm import tqdm
@@ -32,13 +33,15 @@ def add_country_region(csv_file, world_boundaries, path_to_save):
     world_data = world[['ADMIN', 'REGION_UN']].to_json()
     world_dict = json.loads(world_data)
     world_df = pd.DataFrame.from_dict(world_dict, orient='columns')
+    world_df.loc[len(world_df)] = ['Alaska', 'Americas']
     world_df.columns = ['place_country', 'region']
     world_df['country_lower'] = world_df['place_country'].str.lower()
 
     def get_country_from_place(place, country_list):
         place = str(place).lower()
         for country in country_list:
-            if country in place:
+            pattern = r"\b" + re.escape(country.lower()) + r"\b"
+            if re.search(pattern, place):
                 return country
         return None
     
