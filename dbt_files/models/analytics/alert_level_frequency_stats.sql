@@ -12,7 +12,7 @@ select
     alert,
     magnitude
 from {{ ref('fact_earthquake_data') }}
-where alert in ('green', 'yellow', 'orange', 'red')
+where alert in ('green', 'yellow', 'orange', 'red') and country is not null
 order by
     case alert
         when 'red' then 1

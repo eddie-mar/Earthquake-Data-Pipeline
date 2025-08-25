@@ -13,7 +13,7 @@ select
     sum(case when tsunami = 1 then 1 else 0 end) as tsunami_flags,
     (sum(case when tsunami = 1 then 1 else 0 end) / count(*)) * 100 as percent_tsunami_flagged
 from {{ ref('fact_earthquake_data') }} 
-where magnitude > 3
+where magnitude > 3 and country is not null
 group by country, region
 order by percent_tsunami_flagged desc
 
