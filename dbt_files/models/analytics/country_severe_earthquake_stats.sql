@@ -10,7 +10,7 @@ select
     severity as earthquake_severity,
     count(*) as frequency
 from {{ ref('fact_earthquake_data') }}
-where magnitude > 3
+where magnitude > 3 and country is not null
 group by country, severity
 order by 
     country, 

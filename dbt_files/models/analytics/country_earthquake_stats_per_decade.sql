@@ -13,6 +13,6 @@ select
     avg(magnitude) as avg_magnitude, 
     avg(depth) as avg_depth
 from {{ ref('fact_earthquake_data') }}
-where magnitude > 3
+where magnitude > 3 and country is not null
 group by country, region, event_decade
 order by frequency desc
