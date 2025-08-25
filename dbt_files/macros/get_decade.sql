@@ -4,6 +4,6 @@
 
 {% macro get_decade(datetime) %}
 
-    (floor(extract(year from {{ datetime }}) / 10) * 10)
+    cast((floor(extract(year from {{ datetime }}) / 10) * 10) as int64)
 
 {% endmacro %}
