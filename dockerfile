@@ -1,11 +1,12 @@
-FROM python:3.12-slim
+FROM python:3.12-bookworm
 
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
     curl \
-    vim \
     gnupg \
     lsb-release \
+    apt-transport-https \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -29,6 +30,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.
     apt-get update && apt-get install -y google-cloud-cli
 
 ENV PYTHONPATH="/app:${PYTHONPATH}"
+ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 
 COPY . .
 

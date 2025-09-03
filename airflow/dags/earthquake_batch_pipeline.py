@@ -163,7 +163,7 @@ with DAG(
     upload_to_bucket_task = BashOperator(
         task_id='upload_to_GCS',
         bash_command="""
-        gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning') }}*.parquet \
+        gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning') }}/*.parquet \
             gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year }}-{{ '{:02d}'.format(execution_date.month) }}
         """
     )

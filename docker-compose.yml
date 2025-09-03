@@ -6,7 +6,7 @@ services:
     container_name: airflow-dev
     command: bash 
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/airflow/credentials.json
       - AIRFLOW_HOME=/app/airflow
     volumes:
       - ./output:/app/output
