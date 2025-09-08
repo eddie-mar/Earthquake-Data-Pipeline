@@ -16,8 +16,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # airflow
-RUN pip install "apache-airflow==2.9.2" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.12.txt"
-RUN pip install apache-airflow-providers-google
+RUN pip install "apache-airflow[google]==2.9.2" \
+     --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.12.txt"
+RUN pip install "openlineage-airflow>=1.12.0"
 
 # dbt
 RUN pip install dbt-bigquery==1.8.2

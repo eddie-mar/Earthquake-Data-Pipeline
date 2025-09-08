@@ -6,8 +6,8 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_unixtime, to_timestamp
 
-from extract_historical import BASE_DIR
-from add_region_chunks import PROCESSED_DATA as PROCESSED_DATA_SOURCE
+from pipeline.extract_historical import BASE_DIR
+from pipeline.add_region_chunks import PROCESSED_DATA as PROCESSED_DATA_SOURCE
 
 OUTPUT_PARQUET_DIR_PARENT = os.path.join(BASE_DIR, 'output', 'parquet_files')
 OUTPUT_PARQUET_DIR = os.path.join(OUTPUT_PARQUET_DIR_PARENT, 'historical')

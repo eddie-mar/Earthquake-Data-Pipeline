@@ -10,5 +10,6 @@ credentials.json
 target/
 data_exploration_notebooks/earthquake-data.csv
 output/
-
-
+airflow/config/
+airflow/logs/
+airflow/dags/__pycache__
