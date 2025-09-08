@@ -8,8 +8,8 @@ import re
 from shapely.geometry import Point
 from tqdm import tqdm
 
-from extract_historical import OUTPUT_DIR, LOGS_DIR
-from extract_historical import DATA_FILE as RAW_DATA_SOURCE
+from pipeline.extract_historical import OUTPUT_DIR, LOGS_DIR
+from pipeline.extract_historical import DATA_FILE as RAW_DATA_SOURCE
 
 PROCESSED_DATA = os.path.join(OUTPUT_DIR, 'historical-earthquake-data-processed-countries.csv')
 WORLD_BOUNDARIES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'world-boundaries', 'ne_10m_admin_0_countries.shp')

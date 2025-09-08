@@ -22,7 +22,7 @@ with DAG(
     default_args=default_args,
     description='Data Pipeline for Earthquake Data',
     schedule_interval='@monthly', 
-    start_date=datetime(2024, 7, 1),
+    start_date=datetime(2025, 8, 1),
     catchup=True,
 ) as dag:
     DBT_PROJECT_DIR = os.path.join(BASE_DIR, 'dbt_files')
@@ -201,7 +201,7 @@ with DAG(
             "export DBT_PROJECT={{ var.value.project }} && "
             "export DBT_DATASET={{ var.value.dataset }} && "
             "export DBT_KEYFILE={{ var.value.keyfile }} && "
-            """dbt run \
+            f"""dbt run \
                 --project-dir { DBT_PROJECT_DIR } \
                 --profiles-dir { DBT_PROJECT_DIR }
                 """
