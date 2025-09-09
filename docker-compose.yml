@@ -14,6 +14,7 @@ services:
       - ./airflow/logs:/app/airflow/logs
       - ./airflow/config:/app/airflow/config
       - ./secrets/credentials.json:/app/airflow/credentials.json:ro
+      - ./airflow:/app/airflow
     ports:
       - "8080:8080"
     tty: true

@@ -13,3 +13,7 @@ output/
 airflow/config/
 airflow/logs/
 airflow/dags/__pycache__
+airflow/airflow.cfg
+airflow/airflow.db
+airflow/webserver_config.py
+airflow/airflow-webserver.pid

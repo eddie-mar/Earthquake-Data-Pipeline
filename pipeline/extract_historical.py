@@ -123,7 +123,7 @@ def extract_historical(columns, csv_file, start_date, end_date, error_file=ERROR
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Earthquake Data Extraction')
     parser.add_argument('--start_date', required=False, default='1500-01-01', help='Date in ISO format to start extraction')
-    parser.add_argument('--end_date', required=False, default='2025-06-30', help='Date in ISO format to end extraction')
+    parser.add_argument('--end_date', required=False, default='2025-07-31', help='Date in ISO format to end extraction')
 
     args = parser.parse_args()
 
