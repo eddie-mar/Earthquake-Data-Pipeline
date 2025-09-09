@@ -31,9 +31,8 @@ with DAG(
         import pandas as pd
         import requests
 
-        start = date.fromisoformat(kwargs['ds'])
-        end = date.fromisoformat(kwargs['next_ds'])
-        end = end - timedelta(days=1)
+        start = kwargs['data_interval_start'].date()
+        end = kwargs['data_interval_end'].date() - timedelta(days=1)
         
         response = requests.get(f'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime={start}&endtime={end}')
         if not response.ok:
@@ -88,7 +87,7 @@ with DAG(
         ti = kwargs['ti']
         path = ti.xcom_pull(task_ids='extract_earthquake_monthly_data')
 
-        start = date.fromisoformat(kwargs['ds'])
+        start = kwargs['data_interval_start'].date()
         
         # use the non-chunks version of add_region since monthly data is max at 20k counts, assume a normal programmer pc can run lol
         data_wth_region = add_country_region(
@@ -114,14 +113,13 @@ with DAG(
         ti = kwargs['ti']
         data_wth_region = ti.xcom_pull(task_ids='process_data_region')
 
-        start = date.fromisoformat(kwargs['ds'])
-        end = date.fromisoformat(kwargs['next_ds'])
-        end = end - timedelta(days=1)
+        start = kwargs['data_interval_start'].date()
+        end = kwargs['data_interval_end'].date() - timedelta(days=1)
         
         path_to_save = os.path.join(OUTPUT_PARQUET_DIR_PARENT, f'batch-{start.year}-{start.month:02d}')
 
         data_cleaning(
-            filename=data_wth_region,
+            data_source=data_wth_region,
             partitions=0,
             path=path_to_save,
             min_date=start,
@@ -131,7 +129,7 @@ with DAG(
         logs = os.path.join(LOGS_DIR, 'logs_data_cleaning.txt')
         if not os.path.exists(logs):
             with open(logs, 'w') as f:
-                f.write('DATA CLEANING LOGS')
+                f.write('DATA CLEANING LOGS\n')
         
         success_message = f'Successfuly cleaned raw earthquake data for {start.year}-{start.month:02d}'
         print(success_message)
@@ -163,33 +161,28 @@ with DAG(
     upload_to_bucket_task = BashOperator(
         task_id='upload_to_GCS',
         bash_command="""
-        gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning') }}/*.parquet \
-            gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year }}-{{ '{:02d}'.format(execution_date.month) }}
-        """
+            gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning') }}/*.parquet \
+                gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year }}-{{ '{:02d}'.format(execution_date.month) }}/
+            """
     )
     
     upload_to_warehouse_task = BigQueryInsertJobOperator(
         task_id='stage_into_warehouse',
         configuration={
             'query': {
-                'query': '''
+                'query': """
                     MERGE `{{ var.value.project }}.{{ var.value.dataset }}.{{ var.value.schema }}` T
                     USING (
-                        SELECT * FROM EXTERNAL QUERY (
-                            '{{ var.value.project }}',
-                            """
-                            SELECT * FROM EXTERNAL TABLE OPTIONS (
-                                format='PARQUET',
-                                uris=['gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year}}-{{ '{:02d}'.format(execution_date.month) }}/*']
-                                )
-                            """
+                        SELECT * FROM EXTERNAL TABLE (
+                                format=>'PARQUET',
+                                uris=>['gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year}}-{{ '{:02d}'.format(execution_date.month) }}/*']
                             )
                         ) S
                         ON T.place = S.place
                         AND T.earthquake_datetime = S.earthquake_datetime
                         WHEN NOT MATCHED
-                            THEN INSERT ROW;
-                        ''',
+                            THEN INSERT ROW
+                        """,
                 'useLegacySQL': False
             }
         }
@@ -197,15 +190,14 @@ with DAG(
 
     dbt_task = BashOperator(
         task_id='dbt_run',
-        bash_command=(
-            "export DBT_PROJECT={{ var.value.project }} && "
-            "export DBT_DATASET={{ var.value.dataset }} && "
-            "export DBT_KEYFILE={{ var.value.keyfile }} && "
-            f"""dbt run \
+        bash_command=f"""
+            export DBT_PROJECT={{ var.value.project }} && \
+            export DBT_DATASET={{ var.value.dataset }} && \
+            export DBT_KEYFILE={{ var.value.keyfile }} && \
+            dbt run \
                 --project-dir { DBT_PROJECT_DIR } \
                 --profiles-dir { DBT_PROJECT_DIR }
                 """
-        )
     )
 
 
