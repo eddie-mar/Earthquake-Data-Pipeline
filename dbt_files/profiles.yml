@@ -1,4 +1,4 @@
-my_project:
+default:
   target: dev
   outputs:
     dev:
