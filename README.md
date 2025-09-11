@@ -75,6 +75,8 @@ terraform apply
 ```
 An active GCP account must be present. Google Cloud SDK is also used to upload files into GCS Buckets. The resulting parquet files are uploaded into GCS Buckets using gsutil command. Changed the GCS bucket name for yours in your project. Also, save your project credentials.json in secrets/ as it is used in airflow later.
 ```bash
+gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS && \
+gcloud config set project {{ project }}
 gsutil -m cp -r output/parquet_files/historical/*.parquet gs://earthquake_data_buckets/historical
 ```
 <br>
@@ -107,8 +109,12 @@ Replace {{ project }} with your project-id. An empty monthly table was also init
 
 After the data was loaded into the data warehouse, dbt is used to transform and create data models. The staging and fact tables are found in [dbt_files/models/core](dbt_files/models/core/). The staging model standardized naming and data types. In the fact table, a column named 'severity' was created to classify earthquake strength. Event year and decade was also generated which will be used for analytical models. 
 <br><br>
-The analytical models can be found in [dbt_files/models/analytics/](dbt_files/models/analytics/). Some models that can be found are countries' earthquake stats per decade, yearly earthquake statistics and changes, and most dangerous earthquake recorded based on alert level.
-<br><br>
+The analytical models can be found in [dbt_files/models/analytics/](dbt_files/models/analytics/). Some models that can be found are countries' earthquake stats per decade, yearly earthquake statistics and changes, and most dangerous earthquake recorded based on alert level. I queried some models and saved the results into csv, files can be seen in the [assets](assets/) folder.
+<br>
+<p align="center">
+     <img width="75%" src="assets/query-example.png" alt="bigquery sample snip">
+ </p>
+ <br><br>
 
 
  ### Airflow
@@ -132,5 +138,14 @@ airflow db init
 airflow users create --username your_username --password your_password --role Admin --email {{ your_email }} --firstname {{ firstname }} --lastname {{ lastname }}
 airflow webserver -p 8080 & airflow scheduler
 ```
+
+Variables are used in tasks so you must input it in airflow -> admin -> variables. Here are the needed keys and description.
+'project': your gcp project
+'gcs_bucket': name of your gcs bucket
+'dataset': name of dataset where you will save your dbt models
+'schema': name of your schema where you will save your staging monthly data, mine is just stg_earthquake_data_monthly
+'keyfile': 'credentials.json' -> this must be saved in secrets folder and it is mounted in your docker image
+'stg_dataset': dataset where your staging schemas are found, mine is earthquake_stg_data
+<br>
 
 Find the earthquake_pipeline DAG, check scheduled, and trigger it. The DAG will process and catchup monthly data from august to present. 
