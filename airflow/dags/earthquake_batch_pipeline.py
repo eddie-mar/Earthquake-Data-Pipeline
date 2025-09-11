@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from datetime import date, datetime, timedelta
 
 from pipeline.add_region import add_country_region, WORLD_BOUNDARIES
@@ -136,7 +137,10 @@ with DAG(
         with open(logs, 'a') as f:
             f.write(success_message + '\n')
 
-        return path_to_save
+        return {
+            'local_dir': path_to_save,
+            'bucket_dir': f'{start.year}-{start.month:02d}'
+        }
 
 
     # tasks
@@ -161,44 +165,29 @@ with DAG(
     upload_to_bucket_task = BashOperator(
         task_id='upload_to_GCS',
         bash_command="""
-            gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning') }}/*.parquet \
-                gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year }}-{{ '{:02d}'.format(execution_date.month) }}/
+            gsutil -m cp -r {{ ti.xcom_pull(task_ids='run_pyspark_cleaning')['local_dir'] }}/*.parquet \
+                gs://{{ var.value.gcs_bucket }}/monthly/{{ ti.xcom_pull(task_ids='run_pyspark_cleaning')['bucket_dir'] }}/
             """
     )
-    
-    upload_to_warehouse_task = BigQueryInsertJobOperator(
-        task_id='stage_into_warehouse',
-        configuration={
-            'query': {
-                'query': """
-                    MERGE `{{ var.value.project }}.{{ var.value.dataset }}.{{ var.value.schema }}` T
-                    USING (
-                        SELECT * FROM EXTERNAL TABLE (
-                                format=>'PARQUET',
-                                uris=>['gs://{{ var.value.gcs_bucket }}/monthly/{{ execution_date.year}}-{{ '{:02d}'.format(execution_date.month) }}/*']
-                            )
-                        ) S
-                        ON T.place = S.place
-                        AND T.earthquake_datetime = S.earthquake_datetime
-                        WHEN NOT MATCHED
-                            THEN INSERT ROW
-                        """,
-                'useLegacySQL': False
-            }
-        }
-        )
+
+    load_to_bq_task = GCSToBigQueryOperator(
+        task_id='load_to_stg',
+        bucket='{{ var.value.gcs_bucket }}',
+        source_objects=["monthly/{{ ti.xcom_pull(task_ids='run_pyspark_cleaning')['bucket_dir'] }}/*"],
+        destination_project_dataset_table='{{ var.value.project }}.{{ var.value.stg_dataset }}.stg_earthquake_data_monthly',
+        source_format='PARQUET',
+        write_disposition='WRITE_APPEND'
+    )
 
     dbt_task = BashOperator(
         task_id='dbt_run',
         bash_command=f"""
-            export DBT_PROJECT={{ var.value.project }} && \
-            export DBT_DATASET={{ var.value.dataset }} && \
-            export DBT_KEYFILE={{ var.value.keyfile }} && \
-            dbt run \
-                --project-dir { DBT_PROJECT_DIR } \
-                --profiles-dir { DBT_PROJECT_DIR }
+            export DBT_PROJECT={ '{{ var.value.project }}' } && \
+            export DBT_DATASET={ '{{ var.value.dataset }}' } && \
+            export DBT_KEYFILE={ '{{ var.value.keyfile }}' } && \
+            dbt deps --project-dir { DBT_PROJECT_DIR } --profiles-dir { DBT_PROJECT_DIR } && \
+            dbt run --project-dir { DBT_PROJECT_DIR } --profiles-dir { DBT_PROJECT_DIR }
                 """
     )
 
-
-    extract_task >> process_task >> clean_data_task >> upload_to_bucket_task >> upload_to_warehouse_task >> dbt_task
+    extract_task >> process_task >> clean_data_task >> upload_to_bucket_task >> load_to_bq_task >> dbt_task

@@ -16,6 +16,7 @@ This is an ETL project that prepares earthquake data from 1500 until present 202
  - Containerized extraction using docker
  - Created data infrastructure with terraform and uploaded data into GCP BigQuery
  - Data modeling done using dbt 
+ - Used Airflow for running the whole process for the incoming monthly data
 <br>
 
  ### Containerization
@@ -40,7 +41,7 @@ The output folder also includes logs for success and errors during the execution
 ```bash
 python pipeline/extract_historical.py
 ```
-<br><br>
+<br>
 
 ### Data Transformation
 
@@ -60,7 +61,7 @@ python pipeline/clean_historical.py --partitions 4
 ```
 <br>
 
-add_region_chunks.py will create historical-earthquake-data-processed-countries.csv in output/csv_files. clean_historical.py will create parquet files in output/parquet_files/historical/ ready for loading into data lake.
+add_region_chunks.py will create historical-earthquake-data-processed-countries.csv in output/csv_files. clean_historical.py will transform dates, handle duplicates, handle null values, and create parquet files in output/parquet_files/historical/ ready for loading into data lake.
 <br><br>
 
 
@@ -112,4 +113,24 @@ The analytical models can be found in [dbt_files/models/analytics/](dbt_files/mo
 
  ### Airflow
 
+<p align="center">
+     <img width="75%" src="assets/airflow-batch-workflow.png" alt="workflow for batch data">
+ </p>
 
+After the historical data is ready, workflow orchestration is made for monthly batch data using [airflow](airflow/dags/earthquake_batch_pipeline.py). The process is the same (importing scripts/functions from [pipeline](pipeline/)) and the resulting data and models will be appended to the warehouse. 
+<br>
+
+A gcloud account must be activated in order for the tasks to execute (this is also used in the historical).
+```bash
+gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS && \
+gcloud config set project {{ project }}
+```
+
+To run workflow, execute:
+```bash
+airflow db init
+airflow users create --username your_username --password your_password --role Admin --email {{ your_email }} --firstname {{ firstname }} --lastname {{ lastname }}
+airflow webserver -p 8080 & airflow scheduler
+```
+
+Find the earthquake_pipeline DAG, check scheduled, and trigger it. The DAG will process and catchup monthly data from august to present. 

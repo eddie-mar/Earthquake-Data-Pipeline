@@ -15,6 +15,7 @@ services:
       - ./airflow/config:/app/airflow/config
       - ./secrets/credentials.json:/app/airflow/credentials.json:ro
       - ./airflow:/app/airflow
+      - ./dbt_files:/app/dbt_files
     ports:
       - "8080:8080"
     tty: true
