@@ -139,13 +139,28 @@ airflow users create --username your_username --password your_password --role Ad
 airflow webserver -p 8080 & airflow scheduler
 ```
 
-Variables are used in tasks so you must input it in airflow -> admin -> variables. Here are the needed keys and description.
-'project': your gcp project
-'gcs_bucket': name of your gcs bucket
-'dataset': name of dataset where you will save your dbt models
-'schema': name of your schema where you will save your staging monthly data, mine is just stg_earthquake_data_monthly
-'keyfile': 'credentials.json' -> this must be saved in secrets folder and it is mounted in your docker image
-'stg_dataset': dataset where your staging schemas are found, mine is earthquake_stg_data
+Variables are used in tasks so you must input it in airflow -> admin -> variables. Here are the needed keys and description.<br>
+'project': your gcp project<br>
+'gcs_bucket': name of your gcs bucket<br>
+'dataset': name of dataset where you will save your dbt models<br>
+'schema': name of your schema where you will save your staging monthly data, mine is just stg_earthquake_data_monthly<br>
+'keyfile': 'credentials.json' -> this must be saved in secrets folder and it is mounted in your docker image<br>
+'stg_dataset': dataset where your staging schemas are found, mine is earthquake_stg_data<br>
 <br>
 
 Find the earthquake_pipeline DAG, check scheduled, and trigger it. The DAG will process and catchup monthly data from august to present. 
+
+
+### Data Visualization
+
+<p align="center">
+     <img width="75%" src="assets/vis-page-1.png" alt="data visualization page 1">
+ </p>
+<br>
+<p align="center">
+     <img width="75%" src="assets/vis-page-2.png" alt="data visualization page 2">
+ </p>
+
+Power BI is used to visualize data. Some of the graphs I've created is a time series for frequency of earthquake events and maximum magnitude. There is also heat map to see the regions frequently hit by strong earthquakes. A slicer is also made to make the charts interactive and single out data for specific areas/fields. The slicers can filter year, country, and severity of earthquake. It is useful for example, in just finding pattern for major earthquakes that occur throughout the years or finding it for a specific country.<br>
+The Power BI file can be taken [here](assets/earthquake-data.pbix).
+<br>
