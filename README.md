@@ -17,6 +17,7 @@ This is an ETL project that prepares earthquake data from 1500 until present 202
  - Created data infrastructure with terraform and uploaded data into GCP BigQuery
  - Data modeling done using dbt 
  - Used Airflow for running the whole process for the incoming monthly data
+ - Data visualization using Power BI
 <br>
 
  ### Containerization
